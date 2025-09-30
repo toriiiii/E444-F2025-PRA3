@@ -1,4 +1,3 @@
-import os
 import pytest
 from pathlib import Path
 import json
@@ -92,7 +91,9 @@ def test_delete_message(client):
 def test_search(client):
     with app.app_context():
         db.session.add(models.Post(title="yes", text="should appear in search results"))
-        db.session.add(models.Post(title="no", text="should not appear in search results"))
+        db.session.add(
+            models.Post(title="no", text="should not appear in search results")
+        )
         db.session.commit()
     response = client.get("/search/?query=yes", content_type="html/text")
     assert response.status_code == 200
