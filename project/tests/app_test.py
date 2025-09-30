@@ -4,6 +4,7 @@ from pathlib import Path
 import json
 
 from project.app import app, db
+from project import models
 
 TEST_DB = "test.db"
 
@@ -76,8 +77,20 @@ def test_messages(client):
     assert b"&lt;Hello&gt;" in rv.data
     assert b"<strong>HTML</strong> allowed here" in rv.data
 
+
 def test_delete_message(client):
     """Ensure the messages are being deleted"""
     rv = client.get('/delete/1')
     data = json.loads(rv.data)
     assert data["status"] == 1
+
+
+def test_search(client):
+    with app.app_context():
+        db.session.add(models.Post(title="yes", text="should appear in search results"))
+        db.session.add(models.Post(title="no", text="should not appear in search results"))
+        db.session.commit()
+    response = client.get("/search/?query=yes", content_type="html/text")
+    assert response.status_code == 200
+    assert b"yes" in response.data
+    assert b"no" not in response.data
